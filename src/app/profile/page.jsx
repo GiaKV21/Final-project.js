@@ -24,6 +24,7 @@ export default function ProfilePage() {
         backgroundColor: "#f9f9f9",
         borderRadius: "10px",
         boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+        minHeight: "calc(100vh - 10rem)",
       }}
     >
       <h1 style={{ fontSize: "1.8rem", marginBottom: "1rem" }}>Profile</h1>
