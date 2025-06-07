@@ -1,0 +1,21 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background-color: white;
+  border-bottom: 1px solid #ddd;
+  font-family: sans-serif;
+  font-size: 14px;
+}
+.left a,
+.right a {
+  margin-left: 16px;
+  text-decoration: none;
+  color: black;
+}
+.logo {
+  font-weight: bold;
+  font-size: 20px;
+  margin-right: 16px;
+}
