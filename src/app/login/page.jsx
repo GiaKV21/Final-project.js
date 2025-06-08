@@ -86,6 +86,10 @@ export default function LoginPage() {
           <label>Remember me</label>
         </div>
 
+        <div className={styles.registerLink}>
+          <a href="/register">Don't have an account? Register here</a>
+        </div>
+
         <button type="submit" className={styles.button}>
           Login
         </button>
