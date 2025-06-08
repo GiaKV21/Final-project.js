@@ -1,57 +1,55 @@
 "use client";
+
 import { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { cartActions } from "../../store/cartSlice";
 import styles from "../../styles/cart.module.css";
 
 export default function CartPage() {
-  const [cartItems, setCartItems] = useState([]);
+  const cartItems = useSelector((state) => state.cart.items);
+  const dispatch = useDispatch();
+  const [products, setProducts] = useState({});
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function loadCart() {
-      const localCart = JSON.parse(localStorage.getItem("cart")) || [];
-      const fetches = localCart.map(async (item) => {
+    async function loadProducts() {
+      const fetches = cartItems.map(async (item) => {
         const res = await fetch(`https://fakestoreapi.com/products/${item.id}`);
         const product = await res.json();
-        return { id: item.id, quantity: item.quantity, product };
+        return { id: item.id, product };
       });
       const result = await Promise.all(fetches);
-      setCartItems(result);
+
+      // Convert to object for easier lookup
+      const productsMap = {};
+      result.forEach(({ id, product }) => {
+        productsMap[id] = product;
+      });
+
+      setProducts(productsMap);
       setIsLoading(false);
     }
 
-    loadCart();
-  }, []);
+    if (cartItems.length > 0) {
+      loadProducts();
+    } else {
+      setProducts({});
+      setIsLoading(false);
+    }
+  }, [cartItems]);
 
-  function updateQuantity(id, amount) {
-    const updated = cartItems.map((item) => {
-      if (item.id === id) {
-        const newQty = Math.min(10, Math.max(1, item.quantity + amount));
-        return { ...item, quantity: newQty };
-      }
-      return item;
-    });
+  const updateQuantity = (id, amount) => {
+    dispatch(cartActions.updateQuantity({ id, amount }));
+  };
 
-    setCartItems(updated);
-    localStorage.setItem(
-      "cart",
-      JSON.stringify(updated.map(({ id, quantity }) => ({ id, quantity })))
-    );
-  }
+  const removeItem = (id) => {
+    dispatch(cartActions.removeItem(id));
+  };
 
-  function removeItem(id) {
-    const updated = cartItems.filter((item) => item.id !== id);
-    setCartItems(updated);
-    localStorage.setItem(
-      "cart",
-      JSON.stringify(updated.map(({ id, quantity }) => ({ id, quantity })))
-    );
-  }
-
-  function handlePurchase() {
+  const handlePurchase = () => {
     alert("Thank you for your purchase!");
-    setCartItems([]);
-    localStorage.removeItem("cart");
-  }
+    dispatch(cartActions.clearCart());
+  };
 
   if (isLoading) return <p className={styles.loading}>Loading cart...</p>;
 
@@ -59,40 +57,49 @@ export default function CartPage() {
     <div className={styles.container}>
       <h1 className={styles.title}>Shopping Cart</h1>
 
-      {cartItems.map(({ id, quantity, product }) => (
-        <div key={id} className={styles.cartItem}>
-          <img
-            src={product.image}
-            alt={product.title}
-            className={styles.cartImage}
-          />
-          <div className={styles.cartInfo}>
-            <h2 className={styles.cartTitle}>{product.title}</h2>
-            <p className={styles.cartPrice}>${product.price.toFixed(2)}</p>
+      {cartItems.length === 0 && (
+        <p style={{ padding: "1rem" }}>Your cart is empty.</p>
+      )}
+
+      {cartItems.map(({ id, quantity }) => {
+        const product = products[id];
+        if (!product) return null; // in case product not loaded yet
+
+        return (
+          <div key={id} className={styles.cartItem}>
+            <img
+              src={product.image}
+              alt={product.title}
+              className={styles.cartImage}
+            />
+            <div className={styles.cartInfo}>
+              <h2 className={styles.cartTitle}>{product.title}</h2>
+              <p className={styles.cartPrice}>${product.price.toFixed(2)}</p>
+            </div>
+            <div className={styles.cartControls}>
+              <button
+                onClick={() => updateQuantity(id, -1)}
+                disabled={quantity <= 1}
+              >
+                −
+              </button>
+              <span>{quantity}</span>
+              <button
+                onClick={() => updateQuantity(id, +1)}
+                disabled={quantity >= 10}
+              >
+                +
+              </button>
+              <button
+                onClick={() => removeItem(id)}
+                className={styles.removeButton}
+              >
+                Remove
+              </button>
+            </div>
           </div>
-          <div className={styles.cartControls}>
-            <button
-              onClick={() => updateQuantity(id, -1)}
-              disabled={quantity <= 1}
-            >
-              −
-            </button>
-            <span>{quantity}</span>
-            <button
-              onClick={() => updateQuantity(id, +1)}
-              disabled={quantity >= 10}
-            >
-              +
-            </button>
-            <button
-              onClick={() => removeItem(id)}
-              className={styles.removeButton}
-            >
-              Remove
-            </button>
-          </div>
-        </div>
-      ))}
+        );
+      })}
 
       <hr className={styles.divider} />
 
@@ -100,10 +107,11 @@ export default function CartPage() {
         <h2>
           Order Summary: $
           {cartItems
-            .reduce(
-              (total, item) => total + item.product.price * item.quantity,
-              0
-            )
+            .reduce((total, item) => {
+              const product = products[item.id];
+              if (!product) return total;
+              return total + product.price * item.quantity;
+            }, 0)
             .toFixed(2)}
         </h2>
         <p>

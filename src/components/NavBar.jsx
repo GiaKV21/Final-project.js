@@ -19,7 +19,7 @@ export default function NavBar() {
         <Link href="/profile">Profile</Link>
         <Link href="#">Wishlist</Link>
         <Link href="/cart">Cart</Link>
-        <Link href="/login">Login</Link> {/* 👉 Login button added here */}
+        <Link href="/login">Login</Link>
       </div>
     </nav>
   );

@@ -1,7 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -12,6 +14,12 @@ export default function ProfilePage() {
     }
     fetchUser();
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    alert("Logged out! You can now login with a different user.");
+    router.push("/login");
+  };
 
   if (!user) return <p style={{ padding: "2rem" }}>Loading profile...</p>;
 
@@ -44,6 +52,23 @@ export default function ProfilePage() {
         <strong>Address:</strong> {user.address.number} {user.address.street},{" "}
         {user.address.city}, {user.address.zipcode}
       </p>
+
+      {/* Logout button */}
+      <button
+        onClick={handleLogout}
+        style={{
+          marginTop: "2rem",
+          padding: "10px 16px",
+          backgroundColor: "#ff4d4f",
+          color: "white",
+          border: "none",
+          borderRadius: "6px",
+          cursor: "pointer",
+          fontWeight: "bold",
+        }}
+      >
+        Logout
+      </button>
     </div>
   );
 }

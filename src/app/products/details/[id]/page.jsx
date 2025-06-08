@@ -1,11 +1,32 @@
 "use client";
+
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { cartActions } from "../../../../store/cartSlice";
 
 export default function ProductDetailsPage() {
   const { id } = useParams();
+  const router = useRouter();
+  const dispatch = useDispatch();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    // Check login status
+    const checkToken = () => {
+      const token = localStorage.getItem("token");
+      setIsLoggedIn(!!token);
+    };
+
+    checkToken();
+
+    // Listen to storage changes (optional, good for multi-tab)
+    window.addEventListener("storage", checkToken);
+
+    return () => window.removeEventListener("storage", checkToken);
+  }, []);
 
   useEffect(() => {
     async function fetchProduct() {
@@ -25,16 +46,13 @@ export default function ProductDetailsPage() {
   }, [id]);
 
   function addToCart(productId) {
-    const cart = JSON.parse(localStorage.getItem("cart")) || [];
-    const existingItemIndex = cart.findIndex((item) => item.id === productId);
-    if (existingItemIndex !== -1) {
-      if (cart[existingItemIndex].quantity < 10) {
-        cart[existingItemIndex].quantity += 1;
-      }
-    } else {
-      cart.push({ id: productId, quantity: 1 });
+    if (!isLoggedIn) {
+      alert("You must be logged in to add products to your cart!");
+      router.push("/login");
+      return;
     }
-    localStorage.setItem("cart", JSON.stringify(cart));
+
+    dispatch(cartActions.addItem(productId));
     alert("Product added to cart!");
   }
 
