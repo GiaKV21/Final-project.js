@@ -50,7 +50,7 @@ export default function LoginPage() {
           localStorage.setItem("token", result.token);
         }
         alert("Login successful!");
-        router.push("/");
+        router.push("/"); 
       } else {
         alert("Login failed. Check your credentials.");
       }

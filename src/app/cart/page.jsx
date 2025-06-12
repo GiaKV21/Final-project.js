@@ -20,7 +20,6 @@ export default function CartPage() {
       });
       const result = await Promise.all(fetches);
 
-      // Convert to object for easier lookup
       const productsMap = {};
       result.forEach(({ id, product }) => {
         productsMap[id] = product;
@@ -63,7 +62,7 @@ export default function CartPage() {
 
       {cartItems.map(({ id, quantity }) => {
         const product = products[id];
-        if (!product) return null; // in case product not loaded yet
+        if (!product) return null; 
 
         return (
           <div key={id} className={styles.cartItem}>
